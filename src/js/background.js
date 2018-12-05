@@ -9,7 +9,7 @@ import {parse as readFeed} from './lib/feed-parser';
 let timer = null;
 
 async function updateFeeds() {
-    const feeds = await storage.getSync('feeds');
+    const feeds = await storage.getSync('feeds') || [];
 
     // Vacuum local storage area
     const localData = await storage.getLocal() || {};
@@ -33,9 +33,11 @@ async function updateFeeds() {
             });
         } catch (err) {
             console.error('[background worker]', err);
-            const _feed = await storage.getLocal(feed.url);
-            _feed.error = err;
-            await storage.setLocal(feed.url, _feed);
+            if (feed.url) {
+                const _feed = await storage.getLocal(feed.url) || {};
+                _feed.error = err;
+                await storage.setLocal(feed.url, _feed);
+            }
         }
     }));
 }
@@ -68,14 +70,17 @@ function onStorageChanged(ev) {
 }
 
 (async () => {
-    const data = await storage.getSync();
+    const data = await storage.getSync() || {};
 
     if (!data.interval) {
-        await storage.set('interval', 15);
+        await storage.setSync('interval', 15);
     }
 
     if (!data.feeds) {
-        await storage.set('feeds', [{ title: 'The Mozilla Blog', url: 'https://blog.mozilla.org/feed/' }]);
+        await storage.setSync('feeds', [{
+            title: 'The Mozilla Blog',
+            url: 'https://blog.mozilla.org/feed/'
+        }]);
     }
 
     console.log('[background start]');

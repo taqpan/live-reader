@@ -28,7 +28,7 @@ export default {
             this.siteUrl = data.url;
             this.entries = data.items;
         }
-        this.isError = Boolean(data.error);
+        this.isError = Boolean(!data || data.error);
     },
 
     methods: {

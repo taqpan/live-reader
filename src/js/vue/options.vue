@@ -54,7 +54,7 @@ export default {
 
     created() {
         this.$on('change', () => {
-            this.alignFeeds();
+            this.setupNewEmptyFeed();
             this.saveFeeds();
         });
     },
@@ -72,8 +72,8 @@ export default {
                 title: feed.title,
                 url: feed.url
             }));
-            this.alignFeeds();
         }
+        this.setupNewEmptyFeed();
     },
 
     watch: {
@@ -83,8 +83,8 @@ export default {
     },
 
     methods: {
-        alignFeeds() {
-            if (this.feeds[this.feeds.length - 1].url) {
+        setupNewEmptyFeed() {
+            if (!this.feeds.length || this.feeds[this.feeds.length - 1].url) {
                 this.feeds.push({
                     uiKey: this.nextUIKey++,
                     title: '',
