@@ -53,9 +53,10 @@ export default {
     },
 
     created() {
-        this.$on('change', () => {
+        this.$on('change', async () => {
             this.setupNewEmptyFeed();
-            this.saveFeeds();
+            await this.saveFeeds();
+            storage.setLocal('reloadRequestAt', (new Date()).toString());
         });
     },
 
