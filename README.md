@@ -1,7 +1,7 @@
 # LiveReader
 
 ## Overview
-- Simple feed reader for Firefox, yet another "Live Bookmarks".
+- Simple feed reader add-ons for Firefox, yet another "Live Bookmarks".
 - Focuses to run through the headlines of news websites.
 
 ## What it does
@@ -22,6 +22,12 @@
 1. Open Add-ons options.
 2. Register RSS/Atom URLs you subscribe.
 3. Open the popup from toolbar button.
+
+## How to build
+1. Setup nodejs(>=10.13.0) and yarn(>=1.12.3)
+2. ```$ yarn install --pure-lockfile```
+3. ```$ yarn run build```
+4. Generated "dist" directory is the add-ons.
 
 ## License
 [MIT](https://github.com/taqpan/live-reader/blob/master/LICENSE)
