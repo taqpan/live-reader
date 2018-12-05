@@ -3,7 +3,7 @@ const CopyWebpackPlugin = require('copy-webpack-plugin');
 const CleanWebpackPlugin = require('clean-webpack-plugin');
 const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
-const OptimizeCssAssetsPlugin = require("optimize-css-assets-webpack-plugin");
+const OptimizeCssAssetsPlugin = require('optimize-css-assets-webpack-plugin');
 const VueLoaderPlugin = require('vue-loader/lib/plugin');
 
 module.exports = (env, argv) => {
@@ -23,10 +23,6 @@ module.exports = (env, argv) => {
             publicPath: '/dist/'
         },
         devtool: 'source-map',
-        devServer: {
-            port: 8080,
-            contentBase: 'dist'
-        },
         resolve: {
             extensions: ['.js'],
             alias: {
@@ -95,6 +91,7 @@ module.exports = (env, argv) => {
             ]
         },
         plugins: [
+            new CleanWebpackPlugin('dist'),
             new VueLoaderPlugin(),
             new CopyWebpackPlugin([
                 { from: 'src/manifest.json', to: '.' },
@@ -106,10 +103,6 @@ module.exports = (env, argv) => {
             })
         ]
     };
-
-    if (isProduction) {
-        config.plugins.unshift(new CleanWebpackPlugin('dist'));
-    }
 
     return [config];
 }
