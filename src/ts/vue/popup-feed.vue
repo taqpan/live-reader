@@ -5,7 +5,7 @@
 </template>
 
 <script type="text/babel">
-import storage from '../lib/storage';
+import { storage } from "../lib/storage";
 
 export default {
     props: {
@@ -33,7 +33,7 @@ export default {
 
     methods: {
         onMouseEnter() {
-            this.$parent.$emit('open', {
+            this.$parent.$emit("open", {
                 ...this.feed,
                 entries: this.entries
             });

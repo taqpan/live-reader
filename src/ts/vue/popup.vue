@@ -13,15 +13,15 @@
         </ul>
         <div class="controls">
             <button class="reload" :title="`Reload - Last updated at ${formattedUpdatedAt}`" @click="reload">
-                <img src="image/reload.svg">
+                <img src="assets/reload.svg">
             </button>
         </div>
     </div>
 </template>
 
 <script type="text/babel">
-import storage from '../lib/storage';
-import PopupFeed from './popup-feed.vue';
+import { storage } from "../lib/storage";
+import PopupFeed from "./popup-feed.vue";
 
 export default {
     components: {
@@ -38,14 +38,14 @@ export default {
 
     computed: {
         formattedUpdatedAt() {
-            if (!this.updatedAt) return '';
-            
+            if (!this.updatedAt) return "";
+
             const dt = this.updatedAt;
             const y = dt.getFullYear();
-            const m = ('0' + (dt.getMonth() + 1)).slice(-2);
-            const d = ('0' + (dt.getDate())).slice(-2);
-            const h = ('0' + (dt.getHours())).slice(-2);
-            const mi = ('0' + (dt.getMinutes())).slice(-2);
+            const m = ("0" + (dt.getMonth() + 1)).slice(-2);
+            const d = ("0" + (dt.getDate())).slice(-2);
+            const h = ("0" + (dt.getHours())).slice(-2);
+            const mi = ("0" + (dt.getMinutes())).slice(-2);
             return `${y}-${m}-${d} ${h}:${mi}`;
         }
     },
@@ -54,20 +54,20 @@ export default {
     created() {
         this.refresh();
 
-        this.$on('open', (ev) => {
+        this.$on("open", (ev) => {
             this.activeFeed = ev;
-            this.$refs['entries'].scrollTop = 0;
+            this.$refs["entries"].scrollTop = 0;
         });
     },
 
     methods: {
         async reload() {
-            storage.setLocal('reloadRequestAt', (new Date()).toString());
+            storage.setLocal("reloadRequestAt", (new Date()).toString());
         },
 
         async refresh() {
-            this.feeds = await storage.getSync('feeds');
-            this.updatedAt = new Date((await storage.getLocal('updatedAt'))) || null;
+            this.feeds = await storage.getSync("feeds");
+            this.updatedAt = new Date((await storage.getLocal("updatedAt"))) || null;
         }
     }
 };

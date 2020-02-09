@@ -1,0 +1,44 @@
+{
+  "manifest_version": 2,
+  "name": "LiveReader",
+  "version": "0.3",
+
+  "description": "Simple feed reader add-ons, yet another Firefox Live Bookmarks.",
+
+  "permissions": [
+    "http://*/",
+    "https://*/",
+    "storage"
+  ],
+
+  "icons": {
+    "48": "assets/icon.png"
+  },
+
+  "browser_action": {
+    "default_title": "LiveReader",
+    "default_popup": "popup.html",
+    "default_icon": "assets/rss-dark.svg",
+    "theme_icons": [
+      {
+        "light": "assets/rss-light.svg",
+        "dark": "assets/rss-dark.svg",
+        "size": 16
+      },
+      {
+        "light": "assets/rss-light.svg",
+        "dark": "assets/rss-dark.svg",
+        "size": 32
+      }
+    ]
+  },
+
+  "background": {
+    "scripts": ["js/background.js"],
+    "persistent": false
+  },
+
+  "options_page": "options.html",
+
+  "content_security_policy": "script-src 'self' 'unsafe-eval'; object-src 'self'"
+}

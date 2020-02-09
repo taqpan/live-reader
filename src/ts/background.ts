@@ -1,15 +1,14 @@
-'use strict';
-
 /* eslint-disable no-console */
 
-import '@babel/polyfill';
-import storage from './lib/storage';
-import {parse as readFeed} from './lib/feed-parser';
+import { Storage } from 'webextension-polyfill-ts';
+import { storage } from "./lib/storage";
+import { parseFeed } from "./lib/parseFeed";
+import { Feed } from "./model/feed-item";
 
-let timer = null;
+let timer: number | null = null;
 
 async function updateFeeds() {
-    const feeds = await storage.getSync('feeds') || [];
+    const feeds: Feed[] = await storage.getSync("feeds") || [];
 
     // Vacuum local storage area
     const localData = await storage.getLocal() || {};
@@ -24,7 +23,7 @@ async function updateFeeds() {
     // Create entry lists
     await Promise.all(feeds.map(async (feed) => {
         try {
-            const data = await readFeed(feed.url);
+            const data = await parseFeed(feed.url);
             await storage.setLocal(feed.url, {
                 title: feed.title,
                 url: data.url,
@@ -32,7 +31,7 @@ async function updateFeeds() {
                 error: null
             });
         } catch (err) {
-            console.error('[background worker]', err);
+            console.error("[background worker]", err);
             if (feed.url) {
                 const _feed = await storage.getLocal(feed.url) || {};
                 _feed.error = err;
@@ -51,17 +50,17 @@ async function worker() {
     console.log(`[background worker] Start: ${timestamp}`);
 
     await updateFeeds();
-    await storage.setLocal('updatedAt', (new Date()).toString());
+    await storage.setLocal("updatedAt", (new Date()).toString());
 
-    const interval = Math.min(Math.max(1, await storage.getSync('interval')), 60);
+    const interval = Math.min(Math.max(1, await storage.getSync("interval")), 60);
     console.log(`[background worker] Next: ${interval} minutes`);
     timer = setTimeout(worker, interval * 1000 * 60);
 
     lock = false;
 }
 
-function onStorageChanged(ev) {
-    if (ev.hasOwnProperty('interval') || ev.hasOwnProperty('reloadRequestAt')) {
+function onStorageChanged(ev: Storage.StorageChange) {
+    if (ev.hasOwnProperty("interval") || ev.hasOwnProperty("reloadRequestAt")) {
         if (timer) {
             clearTimeout(timer);
         }
@@ -73,17 +72,17 @@ function onStorageChanged(ev) {
     const data = await storage.getSync() || {};
 
     if (!data.interval) {
-        await storage.setSync('interval', 15);
+        await storage.setSync("interval", 15);
     }
 
     if (!data.feeds) {
-        await storage.setSync('feeds', [{
-            title: 'The Mozilla Blog',
-            url: 'https://blog.mozilla.org/feed/'
+        await storage.setSync("feeds", [{
+            title: "The Mozilla Blog",
+            url: "https://blog.mozilla.org/feed/"
         }]);
     }
 
-    console.log('[background start]');
+    console.log("[background start]");
     storage.addListener(onStorageChanged);
     worker();
 })();

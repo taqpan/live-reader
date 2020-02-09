@@ -33,14 +33,14 @@
 </template>
 
 <script type="text/babel">
-import _ from 'lodash';
-import xmljs from 'xml-js';
-import storage from '../lib/storage';
-import OptionsFeedItem from './options-feed-item.vue';
+import _ from "lodash";
+import xmljs from "xml-js";
+import { storage } from "../lib/storage";
+import OptionsFeedItemVue from "./options-feed-item.vue";
 
 export default {
     components: {
-        OptionsFeedItem
+        OptionsFeedItemVue
     },
 
     data() {
@@ -48,15 +48,15 @@ export default {
             nextUIKey: 0,
             interval: 15,
             feeds: [],
-            debug: ''
+            debug: ""
         };
     },
 
     created() {
-        this.$on('change', async () => {
+        this.$on("change", async () => {
             this.setupNewEmptyFeed();
             await this.saveFeeds();
-            storage.setLocal('reloadRequestAt', (new Date()).toString());
+            storage.setLocal("reloadRequestAt", (new Date()).toString());
         });
     },
 
@@ -79,7 +79,7 @@ export default {
 
     watch: {
         interval(newValue) {
-            storage.setSync('interval', newValue);
+            storage.setSync("interval", newValue);
         }
     },
 
@@ -88,8 +88,8 @@ export default {
             if (!this.feeds.length || this.feeds[this.feeds.length - 1].url) {
                 this.feeds.push({
                     uiKey: this.nextUIKey++,
-                    title: '',
-                    url: ''
+                    title: "",
+                    url: ""
                 });
             }
         },
@@ -101,7 +101,7 @@ export default {
                 this.feeds.splice(idx - 1, 0, feed);
             }
 
-            this.$emit('change');
+            this.$emit("change");
         },
 
         moveDown(feed) {
@@ -111,25 +111,25 @@ export default {
                 this.feeds.splice(idx + 1, 0, feed);
             }
 
-            this.$emit('change');
+            this.$emit("change");
         },
 
         remove(feed) {
             const idx = this.feeds.findIndex(x => x.uiKey === feed.uiKey);
             this.feeds.splice(idx, 1);
 
-            this.$emit('change');
+            this.$emit("change");
         },
 
         async saveFeeds() {
-            await storage.setSync('feeds', this.feeds
+            await storage.setSync("feeds", this.feeds
                 .filter((feed) => feed.url)
                 .map((feed) => ({
                     title: feed.title,
                     url: feed.url
                 }))
             );
-            console.log('[options saveFeeds]', this.feeds);
+            console.log("[options saveFeeds]", this.feeds);
         },
 
         openOpml() {
@@ -149,7 +149,7 @@ export default {
 
         applyOpml(xml) {
             const data = xmljs.xml2js(xml, {compact: true});
-            const outline = _.get(data, 'opml.body.outline.outline');
+            const outline = _.get(data, "opml.body.outline.outline");
             if (!Array.isArray(outline)) return;
 
             for (const feed of outline) {
@@ -163,15 +163,15 @@ export default {
                 }
             }
 
-            this.$emit('change');
+            this.$emit("change");
         },
 
         async debugPrintStorage() {
             const syncStorageData = await storage.getSync();
             const localStorageData = await storage.getLocal();
-            this.debug = '==== SYNC ====\n'
+            this.debug = "==== SYNC ====\n"
                 + JSON.stringify(syncStorageData, null, 2)
-                + '\n\n==== LOCAL ====\n'
+                + "\n\n==== LOCAL ====\n"
                 + JSON.stringify(localStorageData, null, 2);
         }
     }

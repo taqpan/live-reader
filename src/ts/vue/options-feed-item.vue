@@ -28,7 +28,7 @@
 </template>
 
 <script type="text/babel">
-import {parse as readFeed} from '../lib/feed-parser';
+import { parseFeed } from "../lib/parseFeed";
 
 const UrlRegExp = new RegExp(/https?:\/\/[-a-zA-Z0-9@:%_\+.~#?&//=]{2,256}\.[a-z]{2,4}\b(\/[-a-zA-Z0-9@:%_\+.~#?&//=]*)?/gi);
 
@@ -52,7 +52,7 @@ export default {
             },
             set(value) {
                 if (this.title !== value) {
-                    this.$emit('update:title', value);
+                    this.$emit("update:title", value);
                     this.commitChange();
                 }
             }
@@ -63,7 +63,7 @@ export default {
             },
             set(value) {
                 if (this.url !== value) {
-                    this.$emit('update:url', value);
+                    this.$emit("update:url", value);
                     this.commitChange();
                     this.validateUrl(value);
                 }
@@ -73,7 +73,7 @@ export default {
 
     methods: {
         commitChange() {
-            this.$parent.$emit('change');
+            this.$parent.$emit("change");
         },
 
         async validateUrl(url) {
@@ -84,7 +84,7 @@ export default {
 
             let data;
             try {
-                data = await readFeed(url);
+                data = await parseFeed(url);
             } catch (err) {
                 this.isError = true;
                 return;
