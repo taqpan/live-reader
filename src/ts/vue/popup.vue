@@ -1,10 +1,12 @@
 <template>
     <div class="live-reader">
         <ul class="feeds">
-            <popup-feed v-for="feed in feeds" :key="feed.url"
-                        :feed="feed"
-                        :is-open="activeFeed.url === feed.url"
-            ></popup-feed>
+            <popup-feed
+                v-for="feed in feeds"
+                :key="feed.url"
+                :feed="feed"
+                :is-open="activeFeed.url === feed.url"
+            />
         </ul>
         <ul class="entries" ref="entries">
             <li v-for="entry in activeFeed.entries" :key="entry.url">
@@ -12,7 +14,26 @@
             </li>
         </ul>
         <div class="controls">
-            <button class="reload" :title="`Reload - Last updated at ${formattedUpdatedAt}`" @click="reload">
+            <button
+                v-if="currentTabFeed"
+                class="control-button"
+                title="Register current tab"
+                @click="add"
+            >
+                <img src="assets/plus.svg">
+            </button>
+            <button
+                class="control-button"
+                title="Manage watchings"
+                @click="edit"
+            >
+                <img src="assets/edit.svg">
+            </button>
+            <button
+                class="control-button"
+                :title="`Reload - Last updated at ${formattedUpdatedAt}`"
+                @click="reload"
+            >
                 <img src="assets/reload.svg">
             </button>
         </div>
@@ -20,7 +41,10 @@
 </template>
 
 <script type="text/babel">
+import { currentUrl } from "../lib/current-url";
+import { parseFeed } from '../lib/parse-feed';
 import { storage } from "../lib/storage";
+import { Feed } from "../model/feed-item";
 import PopupFeed from "./popup-feed.vue";
 
 export default {
@@ -32,7 +56,8 @@ export default {
         return {
             updatedAt: null,
             feeds: [],
-            activeFeed: {}
+            activeFeed: {},
+            currentTabFeed: Feed | null,
         };
     },
 
@@ -58,6 +83,8 @@ export default {
             this.activeFeed = ev;
             this.$refs["entries"].scrollTop = 0;
         });
+
+        this.currentFeed();
     },
 
     methods: {
@@ -68,6 +95,27 @@ export default {
         async refresh() {
             this.feeds = await storage.getSync("feeds");
             this.updatedAt = new Date((await storage.getLocal("updatedAt"))) || null;
+        },
+
+        async currentFeed() {
+            if (chrome && chrome.tabs && chrome.tabs.query) {
+                try {
+                    const url = await currentUrl();
+                    const feed = await parseFeed(url);
+                    this.currentTabFeed = feed;
+                } catch (_) {
+                    console.warn(_);
+                    this.currentTabFeed = null;
+                }
+            }
+        },
+
+        async add() {
+            console.log(this.currentTabFeed);
+        },
+
+        async edit() {
+            console.log("###edit");
         }
     }
 };

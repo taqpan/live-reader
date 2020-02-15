@@ -46,7 +46,7 @@ export default {
     data() {
         return {
             nextUIKey: 0,
-            interval: 15,
+            interval: 60,
             feeds: [],
             debug: ""
         };

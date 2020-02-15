@@ -2,10 +2,10 @@
 
 import { Storage } from 'webextension-polyfill-ts';
 import { storage } from "./lib/storage";
-import { parseFeed } from "./lib/parseFeed";
+import { parseFeed } from "./lib/parse-feed";
 import { Feed } from "./model/feed-item";
 
-let timer: number | null = null;
+let timer: NodeJS.Timeout | null = null;
 
 async function updateFeeds() {
     const feeds: Feed[] = await storage.getSync("feeds") || [];

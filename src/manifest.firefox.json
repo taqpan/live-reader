@@ -8,26 +8,31 @@
   "permissions": [
     "http://*/",
     "https://*/",
-    "storage"
+    "storage",
+    "tabs"
   ],
 
   "icons": {
-    "48": "assets/icon.png"
+    "48": "assets/icon-48.png",
+    "96": "assets/icon-96.png"
   },
 
   "browser_action": {
     "default_title": "LiveReader",
     "default_popup": "popup.html",
-    "default_icon": "assets/rss-dark.svg",
+    "default_icon": {
+      "16": "assets/icon-16.png",
+      "32": "assets/icon-32.png"
+    },
     "theme_icons": [
       {
-        "light": "assets/rss-light.svg",
-        "dark": "assets/rss-dark.svg",
+        "light": "assets/icon-light.svg",
+        "dark": "assets/icon-dark.svg",
         "size": 16
       },
       {
-        "light": "assets/rss-light.svg",
-        "dark": "assets/rss-dark.svg",
+        "light": "assets/icon-light.svg",
+        "dark": "assets/icon-dark.svg",
         "size": 32
       }
     ]

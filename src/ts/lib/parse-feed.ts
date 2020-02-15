@@ -7,10 +7,12 @@ function asArray(node: any): any[] {
     return Array.isArray(node) ? node : [node];
 }
 
+
 function asText(node: any): string {
     if (!node) return "";
     return node._text || node._cdata || "";
 }
+
 
 function parseXmlLikeRss1(obj: any): Feed {
     const channel = obj.channel;
