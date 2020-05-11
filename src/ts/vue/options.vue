@@ -32,15 +32,17 @@
                         @change="loadOpml"
                     >
                 </div>
-                <a
-                    v-if="opmlUrl"
-                    :class="$style.button"
-                    :href="opmlUrl"
-                    target="_blank"
-                    download="exported-opml.xml"
-                >
-                    Export OPML
-                </a>
+                <div>
+                    <a
+                        v-if="opmlUrl"
+                        :class="$style.button"
+                        :href="opmlUrl"
+                        target="_blank"
+                        download="exported-opml.xml"
+                    >
+                        Export OPML
+                    </a>
+                </div>
             </div>
         </div>
         <div
@@ -88,8 +90,6 @@
 }
 
 .load {
-    margin-bottom: 8px;
-
     > input {
         display: none;
     }

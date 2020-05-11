@@ -1,6 +1,6 @@
 {
   "name": "live-reader",
-  "version": "0.3.0",
+  "version": "0.4",
   "description": "Simple feed reader for Firefox, yet another Live Bookmarks.",
   "repository": "https://github.com/taqpan/live-reader",
   "author": "taqpan",
