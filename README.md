@@ -6,14 +6,11 @@
 
 ## What it does
 - Latest entries list supplied by the RSS/Atom feeds.
-- Importing OPML.
+- Importing/Exporting OPML.
 
 ## What it DOES NOT do
 - Managing read/unread.
 - Entry page viewer.
-
-## Not implemented yet
-- Exporting OPML.
 
 ## Requirement
 - Firefox 54 or later, for desktop.
