@@ -1,179 +1,197 @@
 <template>
-<section class="live-reader-options">
-    <div>
-        <h2>General</h2>
-        <div>
-            Updates by <input type="number" min="1" max="60"
-                              v-model.lazy.number="interval"> minutes (1 - 60)
+    <div :class="$style.options">
+        <div :class="$style.section">
+            <h2 :class="$style.caption">
+                General
+            </h2>
+            <div>
+                Updates by <input
+                    v-model.lazy.number="interval"
+                    style="width:5em;"
+                    type="number"
+                    min="3"
+                    max="300"
+                > minutes (3 - 300)
+            </div>
+        </div>
+        <div :class="$style.section">
+            <h2 :class="$style.caption">
+                Feeds
+            </h2>
+            <div :class="$style.inline">
+                <div :class="$style.load">
+                    <button
+                        :class="$style.button"
+                        @click="selectOpml"
+                    >
+                        Import OPML
+                    </button>
+                    <input
+                        ref="opmlFileInput"
+                        type="file"
+                        @change="loadOpml"
+                    >
+                </div>
+                <a
+                    v-if="opmlUrl"
+                    :class="$style.button"
+                    :href="opmlUrl"
+                    target="_blank"
+                    download="exported-opml.xml"
+                >
+                    Export OPML
+                </a>
+            </div>
+        </div>
+        <div
+            v-if="success"
+            :class="$style.success"
+        >
+            {{ success }}
+        </div>
+        <div
+            v-if="error"
+            :class="$style.error"
+        >
+            {{ error }}
         </div>
     </div>
-    <div>
-        <h2>Feeds</h2>
-        <ul>
-            <options-feed-item v-for="(feed, idx) in feeds" :key="feed.uiKey"
-                               :url.sync="feed.url"
-                               :title.sync="feed.title"
-                               :isNewItem="idx === (feeds.length - 1)"
-                               v-on:remove="remove(feed)"
-                               v-on:moveUp="moveUp(feed)"
-                               v-on:moveDown="moveDown(feed)"
-            ></options-feed-item>
-        </ul>
-        <div>
-            <button @click="openOpml">Load OPML</button>
-            <input type="file" @change="loadOpml" ref="opmlFileInput">
-        </div>
-    </div>
-    <div>
-        <h2>Debug</h2>
-        <button @click="debugPrintStorage">Print Storage</button>
-        <pre class="debug">{{debug}}</pre>
-    </div>
-</section>
 </template>
 
-<script type="text/babel">
-import _ from "lodash";
-import xmljs from "xml-js";
-import { storage } from "../lib/storage";
-import OptionsFeedItemVue from "./options-feed-item.vue";
+<style lang="scss" module>
+@import "../../scss/constants.scss";
 
-export default {
-    components: {
-        OptionsFeedItemVue
-    },
+.options {
+    font-size: 14px;
+    margin: 0 1em 1.7em;
+    color: #333;
+}
 
-    data() {
-        return {
-            nextUIKey: 0,
-            interval: 60,
-            feeds: [],
-            debug: ""
-        };
-    },
+.section {
+    margin-bottom: 1em;
+}
 
-    created() {
-        this.$on("change", async () => {
-            this.setupNewEmptyFeed();
-            await this.saveFeeds();
-            storage.setLocal("reloadRequestAt", (new Date()).toString());
-        });
-    },
+.caption {
+    font-size: 18px;
+    font-weight: bold;
+    line-height: 1.5em;
+    margin: 0 0 .5em;
+    padding: 0;
+}
+
+.inline {
+    display: flex;
+    align-items: flex-start;
+    > * {
+        display: block;
+    }
+}
+
+.load {
+    margin-bottom: 8px;
+
+    > input {
+        display: none;
+    }
+}
+
+.button {
+    display: block;
+    margin: 4px;
+    border: 1px solid #aaa;
+    border-radius: 8px;
+    padding: 5px 8px;
+
+    cursor: pointer;
+
+    text-decoration: none;;
+    color: #333;
+    background-color: #eee;
+    opacity: .7;
+    transition: all .2s;
+    &:hover {
+        color: inherit;
+        background-color: #eee;
+        opacity: 1;
+    }
+    &:active {
+        color: inherit;
+        background-color: #eee;
+    }
+}
+
+.success {
+    color: $color-green;
+}
+
+.error {
+    color: $color-red;
+}
+</style>
+
+<script lang="ts">
+import { Component, Vue, Watch } from "vue-property-decorator";
+import * as AppStorage from "../logics/app-storage";
+import * as Opml from "../logics/opml";
+
+@Component
+export default class Options extends Vue {
+    interval = 60;
+    opmlUrl: string = "";
+    success: string = "";
+    error: string = "";
+
+    @Watch("interval")
+    onInterval(newValue: number) {
+        this.interval = newValue;
+        AppStorage.setInterval(newValue);
+    }
 
     async mounted() {
-        const data = await storage.getSync();
-
-        if (data.interval) {
-            this.interval = data.interval;
+        const interval = await AppStorage.getInterval();
+        if (interval) {
+            this.interval = interval;
         }
 
-        if (data.feeds && data.feeds.length) {
-            this.feeds = data.feeds.map(feed => ({
-                uiKey: this.nextUIKey++,
-                title: feed.title,
-                url: feed.url
-            }));
-        }
-        this.setupNewEmptyFeed();
-    },
+        this.prepareOpmlUrl();
+    }
 
-    watch: {
-        interval(newValue) {
-            storage.setSync("interval", newValue);
-        }
-    },
+    selectOpml() {
+        const ctrl = this.$refs.opmlFileInput as any;
+        ctrl.click();
+    }
 
-    methods: {
-        setupNewEmptyFeed() {
-            if (!this.feeds.length || this.feeds[this.feeds.length - 1].url) {
-                this.feeds.push({
-                    uiKey: this.nextUIKey++,
-                    title: "",
-                    url: ""
-                });
+    async loadOpml(ev: Event) {
+        try {
+            const files = (ev.target as HTMLInputElement).files;
+            const file = files && files[0];
+            if (file) {
+                const n = await Opml.importOpml(file);
+                await AppStorage.requestReload();
+                this.success = `Imported ${n} feed${n > 1 ? "s" : 0}.`;
+                this.error = "";
             }
-        },
-
-        moveUp(feed) {
-            const idx = this.feeds.findIndex(x => x.uiKey === feed.uiKey);
-            if (idx > 0) {
-                const feed = this.feeds.splice(idx, 1)[0];
-                this.feeds.splice(idx - 1, 0, feed);
+        } catch (err) {
+            this.success = "";
+            if (err instanceof Error) {
+                this.error = err.message;
+            } else {
+                this.error = "Failed to read the file as OPML.";
             }
-
-            this.$emit("change");
-        },
-
-        moveDown(feed) {
-            const idx = this.feeds.findIndex(x => x.uiKey === feed.uiKey);
-            if (idx < this.feeds.length - 2) {
-                const feed = this.feeds.splice(idx, 1)[0];
-                this.feeds.splice(idx + 1, 0, feed);
-            }
-
-            this.$emit("change");
-        },
-
-        remove(feed) {
-            const idx = this.feeds.findIndex(x => x.uiKey === feed.uiKey);
-            this.feeds.splice(idx, 1);
-
-            this.$emit("change");
-        },
-
-        async saveFeeds() {
-            await storage.setSync("feeds", this.feeds
-                .filter((feed) => feed.url)
-                .map((feed) => ({
-                    title: feed.title,
-                    url: feed.url
-                }))
-            );
-            console.log("[options saveFeeds]", this.feeds);
-        },
-
-        openOpml() {
-            this.$refs.opmlFileInput.click();
-        },
-
-        loadOpml(ev) {
-            const file = ev.target.files[0];
-            if (!file) return;
-
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                this.applyOpml(e.target.result);
-            };
-            reader.readAsText(file);
-        },
-
-        applyOpml(xml) {
-            const data = xmljs.xml2js(xml, {compact: true});
-            const outline = _.get(data, "opml.body.outline.outline");
-            if (!Array.isArray(outline)) return;
-
-            for (const feed of outline) {
-                const attr = feed._attributes;
-                if (attr && attr.xmlUrl) {
-                    this.feeds.splice(-1, 0, {
-                        uiKey: this.nextUIKey++,
-                        title: attr.title || attr.text || attr.xmlUrl,
-                        url: attr.xmlUrl
-                    });
-                }
-            }
-
-            this.$emit("change");
-        },
-
-        async debugPrintStorage() {
-            const syncStorageData = await storage.getSync();
-            const localStorageData = await storage.getLocal();
-            this.debug = "==== SYNC ====\n"
-                + JSON.stringify(syncStorageData, null, 2)
-                + "\n\n==== LOCAL ====\n"
-                + JSON.stringify(localStorageData, null, 2);
         }
     }
-};
+
+    async prepareOpmlUrl() {
+        try {
+            const doctype = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>";
+            const xml = await Opml.exportOpml();
+            const data = `${doctype}\n${xml}`;
+            this.opmlUrl = `data:application/xml,${encodeURI(data)}`;
+        } catch (err) {
+            if (err instanceof Error) {
+                this.error = err.message;
+            }
+        }
+    }
+}
 </script>

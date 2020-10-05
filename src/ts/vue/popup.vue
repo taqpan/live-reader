@@ -1,122 +1,55 @@
 <template>
-    <div class="live-reader">
-        <ul class="feeds">
-            <popup-feed
-                v-for="feed in feeds"
-                :key="feed.url"
-                :feed="feed"
-                :is-open="activeFeed.url === feed.url"
-            />
-        </ul>
-        <ul class="entries" ref="entries">
-            <li v-for="entry in activeFeed.entries" :key="entry.url">
-                <a :href="entry.url" :title="entry.title">{{entry.title}}</a>
-            </li>
-        </ul>
-        <div class="controls">
-            <button
-                v-if="currentTabFeed"
-                class="control-button"
-                title="Register current tab"
-                @click="add"
-            >
-                <img src="assets/plus.svg">
-            </button>
-            <button
-                class="control-button"
-                title="Manage watchings"
-                @click="edit"
-            >
-                <img src="assets/edit.svg">
-            </button>
-            <button
-                class="control-button"
-                :title="`Reload - Last updated at ${formattedUpdatedAt}`"
-                @click="reload"
-            >
-                <img src="assets/reload.svg">
-            </button>
-        </div>
+    <div>
+        <viewer
+            v-if="mode === 'viewer'"
+            @popup-mode="changeMode"
+        />
+        <editor
+            v-if="mode === 'editor'"
+            @popup-mode="changeMode"
+        />
     </div>
 </template>
 
-<script type="text/babel">
-import { currentUrl } from "../lib/current-url";
-import { parseFeed } from '../lib/parse-feed';
-import { storage } from "../lib/storage";
-import { Feed } from "../model/feed-item";
-import PopupFeed from "./popup-feed.vue";
+<style lang="scss" module>
+@import "../../scss/constants.scss";
 
-export default {
+:global(html) {
+    margin: 0;
+    border: 0;
+    padding: 0;
+}
+
+:global(body) {
+    color: $color-text;
+    background-color: $color-bg;
+    min-width: $width-all;
+    max-height: $height-all;
+    margin: 0;
+    border: 0;
+    padding: 0;
+    overflow: hidden;
+}
+</style>
+
+<script lang="ts">
+import { Component, Vue } from "vue-property-decorator";
+import Viewer from "./viewer.vue";
+import Editor from "./editor.vue";
+
+export type PopupMode = "viewer" | "editor";
+
+@Component({
     components: {
-        PopupFeed
+        Viewer,
+        Editor,
     },
+})
+export default class Popup extends Vue {
+    mode: PopupMode = "viewer";
 
-    data() {
-        return {
-            updatedAt: null,
-            feeds: [],
-            activeFeed: {},
-            currentTabFeed: Feed | null,
-        };
-    },
-
-    computed: {
-        formattedUpdatedAt() {
-            if (!this.updatedAt) return "";
-
-            const dt = this.updatedAt;
-            const y = dt.getFullYear();
-            const m = ("0" + (dt.getMonth() + 1)).slice(-2);
-            const d = ("0" + (dt.getDate())).slice(-2);
-            const h = ("0" + (dt.getHours())).slice(-2);
-            const mi = ("0" + (dt.getMinutes())).slice(-2);
-            return `${y}-${m}-${d} ${h}:${mi}`;
-        }
-    },
-
-    // Called on everytime the popup is opened.
-    created() {
-        this.refresh();
-
-        this.$on("open", (ev) => {
-            this.activeFeed = ev;
-            this.$refs["entries"].scrollTop = 0;
-        });
-
-        this.currentFeed();
-    },
-
-    methods: {
-        async reload() {
-            storage.setLocal("reloadRequestAt", (new Date()).toString());
-        },
-
-        async refresh() {
-            this.feeds = await storage.getSync("feeds");
-            this.updatedAt = new Date((await storage.getLocal("updatedAt"))) || null;
-        },
-
-        async currentFeed() {
-            if (chrome && chrome.tabs && chrome.tabs.query) {
-                try {
-                    const url = await currentUrl();
-                    const feed = await parseFeed(url);
-                    this.currentTabFeed = feed;
-                } catch (_) {
-                    console.warn(_);
-                    this.currentTabFeed = null;
-                }
-            }
-        },
-
-        async add() {
-            console.log(this.currentTabFeed);
-        },
-
-        async edit() {
-            console.log("###edit");
-        }
+    changeMode(mode: PopupMode) {
+        this.mode = mode;
     }
-};
+}
 </script>

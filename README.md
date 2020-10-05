@@ -24,9 +24,9 @@
 3. Open the popup from toolbar button.
 
 ## How to build
-1. Setup nodejs(>=10.13.0) and yarn(>=1.12.3)
+1. Setup nodejs(>=10.13.x) and yarn(>=1.12.x)
 2. ```$ yarn install --pure-lockfile```
-3. ```$ yarn run build```
+3. ```$ yarn run dist```
 4. Generated "dist" directory is the add-ons.
 
 ## License

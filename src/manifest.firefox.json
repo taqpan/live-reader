@@ -23,19 +23,7 @@
     "default_icon": {
       "16": "assets/icon-16.png",
       "32": "assets/icon-32.png"
-    },
-    "theme_icons": [
-      {
-        "light": "assets/icon-light.svg",
-        "dark": "assets/icon-dark.svg",
-        "size": 16
-      },
-      {
-        "light": "assets/icon-light.svg",
-        "dark": "assets/icon-dark.svg",
-        "size": 32
-      }
-    ]
+    }
   },
 
   "background": {

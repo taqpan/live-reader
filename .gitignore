@@ -1,7 +1,7 @@
 *.bak
 *.log
-/dist
-/build
+dist/
+build/
 
 ### Node ###
 node_modules/

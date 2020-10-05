@@ -3,14 +3,13 @@ const path = require('path');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const VueLoaderPlugin = require('vue-loader/lib/plugin');
+const webpack = require('webpack');
 
 module.exports = {
     entry: {
         'js/background': path.resolve(__dirname, 'src/ts/background.ts'),
         'js/popup': path.resolve(__dirname, 'src/ts/popup.ts'),
-        'css/popup': path.resolve(__dirname, 'src/scss/popup.scss'),
         'js/options': path.resolve(__dirname, 'src/ts/options.ts'),
-        'css/options': path.resolve(__dirname, 'src/scss/options.scss')
     },
     output: {
         path: path.resolve(__dirname, 'build'),
@@ -30,28 +29,31 @@ module.exports = {
             {
                 test: /\.ts$/,
                 exclude: /node_modules/,
-                loader: 'ts-loader',
-                options: {
-                    appendTsSuffixTo: [/\.vue$/],
+                use: {
+                    loader: 'ts-loader',
+                    options: {
+                        appendTsSuffixTo: [/\.vue$/],
+                    }
                 }
             },
             {
                 test: /\.vue$/,
                 exclude: /node_modules/,
-                loader: 'vue-loader',
-            },
-            {
-                test: /\.css$/,
-                use: [
-                    MiniCssExtractPlugin.loader,
-                    'css-loader',
-                ]
+                use: {
+                    loader: 'vue-loader',
+                }
             },
             {
                 test: /\.scss$/,
                 use: [
-                    MiniCssExtractPlugin.loader,
-                    'css-loader',
+                    // MiniCssExtractPlugin.loader,
+                    'vue-style-loader',
+                    {
+                        loader: 'css-loader',
+                        options: {
+                            modules: true
+                        }
+                    },
                     { // postcssLoader
                         loader: 'postcss-loader',
                         options: {
@@ -67,6 +69,9 @@ module.exports = {
         ]
     },
     plugins: [
+        new webpack.ProvidePlugin({
+            global: require.resolve('./global.js')
+        }),
         new VueLoaderPlugin(),
         new CopyWebpackPlugin([
             { from: 'src/*.html', to: './[name].html' },
@@ -75,5 +80,8 @@ module.exports = {
         new MiniCssExtractPlugin({
             filename: '[name].css'
         })
-    ]
+    ],
+    node: {
+        global: false
+    }
 };

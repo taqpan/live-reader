@@ -1,41 +1,43 @@
 /* eslint-disable no-console */
 
-import { Storage } from 'webextension-polyfill-ts';
-import { storage } from "./lib/storage";
-import { parseFeed } from "./lib/parse-feed";
-import { Feed } from "./model/feed-item";
+import { Storage } from "webextension-polyfill-ts";
+import { loadFeed } from "./logics/load-feed";
+import * as AppStorage from "./logics/app-storage";
+import { Subscription } from './models/subscription';
+import { FeedCache } from './models/feed-cache';
+import { storage } from "./utils/storage";
 
 let timer: NodeJS.Timeout | null = null;
 
 async function updateFeeds() {
-    const feeds: Feed[] = await storage.getSync("feeds") || [];
+    await AppStorage.vacuumFeedCache();
 
-    // Vacuum local storage area
-    const localData = await storage.getLocal() || {};
-    for (const key of Object.keys(localData)) {
-        if (!localData.hasOwnProperty(key)) continue;
-        if (!key.match(/^https?:\/\//)) continue;
-        if (!feeds.find((feed) => (feed.url === key))) {
-            await storage.removeLocal(key);
-        }
-    }
-
-    // Create entry lists
-    await Promise.all(feeds.map(async (feed) => {
+    const subscriptions: Subscription[] = await AppStorage.getSubscriptions();
+    await Promise.all(subscriptions.map(async (subscription) => {
         try {
-            const data = await parseFeed(feed.url);
-            await storage.setLocal(feed.url, {
-                title: feed.title,
-                url: data.url,
-                items: data.items,
-                error: null
-            });
+            const data = await loadFeed(subscription.url);
+            const cache: FeedCache = {
+                url: subscription.url,
+                title: subscription.title,
+                link: data.link,
+                entries: data.entries,
+                error: null,
+            };
+            await AppStorage.setFeedCache(cache);
         } catch (err) {
-            console.error("[background worker]", err);
-            if (feed.url) {
-                const _feed = await storage.getLocal(feed.url) || {};
-                _feed.error = err;
-                await storage.setLocal(feed.url, _feed);
+            console.log("[background worker]", err);
+            if (subscription.url) {
+                let cache = await AppStorage.getFeedCache(subscription.url);
+                if (cache) {
+                    cache.error = err;
+                } else {
+                    cache = {
+                        url: subscription.url,
+                        title: subscription.title,
+                        error: err,
+                    };
+                }
+                await AppStorage.setFeedCache(cache);
             }
         }
     }));
@@ -50,9 +52,9 @@ async function worker() {
     console.log(`[background worker] Start: ${timestamp}`);
 
     await updateFeeds();
-    await storage.setLocal("updatedAt", (new Date()).toString());
+    await AppStorage.setTimestamp(new Date());
 
-    const interval = Math.min(Math.max(1, await storage.getSync("interval")), 60);
+    const interval = Math.min(Math.max(1, await AppStorage.getInterval()), 300);
     console.log(`[background worker] Next: ${interval} minutes`);
     timer = setTimeout(worker, interval * 1000 * 60);
 
@@ -60,29 +62,23 @@ async function worker() {
 }
 
 function onStorageChanged(ev: Storage.StorageChange) {
-    if (ev.hasOwnProperty("interval") || ev.hasOwnProperty("reloadRequestAt")) {
+    const update = async () => {
         if (timer) {
             clearTimeout(timer);
         }
-        worker();
+        await worker();
+    };
+
+    if (Object.prototype.hasOwnProperty.call(ev, "reloadRequestAt")) {
+        update();
+        return;
     }
 }
 
 (async () => {
-    const data = await storage.getSync() || {};
-
-    if (!data.interval) {
-        await storage.setSync("interval", 15);
-    }
-
-    if (!data.feeds) {
-        await storage.setSync("feeds", [{
-            title: "The Mozilla Blog",
-            url: "https://blog.mozilla.org/feed/"
-        }]);
-    }
-
     console.log("[background start]");
+
+    await AppStorage.init();
     storage.addListener(onStorageChanged);
     worker();
 })();
