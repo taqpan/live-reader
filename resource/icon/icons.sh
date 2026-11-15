@@ -1,12 +1,9 @@
 #!/bin/sh
-cd `dirname $0`
+# icon.png から拡張機能用のアイコンを生成する（ImageMagick 7 が必要）
+cd "$(dirname "$0")" || exit 1
 
-DEST_DIR="../../src/assets"
+DEST_DIR="../../public/icon"
 
-convert icon.png -resize 48x48 $DEST_DIR/icon.png
-convert icon.png -resize 16x16 $DEST_DIR/icon-16.png
-convert icon.png -resize 32x32 $DEST_DIR/icon-32.png
-convert icon.png -resize 48x48 $DEST_DIR/icon-48.png
-convert icon.png -resize 96x96 $DEST_DIR/icon-96.png
-convert icon.png -resize 128x128 $DEST_DIR/icon-128.png
-convert icon.png -resize 256x256 $DEST_DIR/icon-256.png
+for size in 16 32 48 96 128; do
+    magick icon.png -resize "${size}x${size}" "$DEST_DIR/$size.png"
+done
