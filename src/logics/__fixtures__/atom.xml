@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title type="text">Atom Sample</title>
+  <link rel="self" href="https://example.net/atom.xml"/>
+  <link href="https://example.net/"/>
+  <entry>
+    <title>Multiple links</title>
+    <link rel="replies" href="https://example.net/1#comments"/>
+    <link rel="alternate" type="text/html" href="https://example.net/1"/>
+  </entry>
+  <entry>
+    <title>Implicit alternate</title>
+    <link href="https://example.net/2"/>
+  </entry>
+  <entry>
+    <title>Only enclosure</title>
+    <link rel="enclosure" href="https://example.net/3.mp3"/>
+  </entry>
+</feed>

@@ -1,0 +1,23 @@
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: monthly
+    open-pull-requests-limit: 5
+    groups:
+      # 本番に入る依存（vue, fast-xml-parser）
+      runtime:
+        dependency-type: production
+      # ビルド・テスト・lint のツール。マイナー/パッチはまとめて 1 本の PR にする
+      tooling:
+        dependency-type: development
+        update-types: [minor, patch]
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    groups:
+      actions:
+        patterns: ["*"]

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>RSS2 Sample</title>
+    <link>https://example.org/</link>
+    <atom:link href="https://example.org/feed" rel="self" type="application/rss+xml"/>
+    <item>
+      <title><![CDATA[CDATA <b>title</b>]]></title>
+      <link>https://example.org/a</link>
+    </item>
+    <item>
+      <title>It&#8217;s&nbsp;fine &lt;ok&gt;</title>
+      <link>https://example.org/b</link>
+    </item>
+    <item>
+      <title>No link</title>
+    </item>
+  </channel>
+</rss>
